@@ -95,6 +95,32 @@ Windows 使用原生 WPF 托盘面板，Mac 使用原生 SwiftUI 菜单栏面板
 
 构建成功后可以在 Actions 下载 artifacts。推送 `v*` 标签后，四个平台全部通过才会自动建立 GitHub Release，上传 ZIP、DMG 和 `SHA256SUMS.txt`。带预发行后缀的标签自动发布为预发行版。
 
+## 与 DJOneHub 的关系及本项目的改进
+
+感谢 [DJOneHub / DJOneHub-mac-enhanced](https://github.com/rogerbush007-a11y/DJOneHub-mac-enhanced) 对第一代 DJI 4G 模块的公开探索。本项目参考其硬件协议、Mac USB/AT 通信和重连确认方式，围绕“在电脑间携带网卡，一键切换”独立实现。当前没有移植其源码，也不依赖其后台服务。
+
+| 结合或参考的地方 | 本项目的实现与调整 |
+|---|---|
+| 第一代模块的 USB 标识及 `usbnet` 网络模式 | 使用 `2CA3:4006`，将 Windows 的 `usbnet=0` 与 Mac / iPad 的 `usbnet=1` 收成一个开关，并检查自动联网配置 |
+| Mac 通过 libusb 访问 AT 控制通道，先用 `AT` / `OK` 确认接口 | 使用已知 AT 接口；命令限制在查询、模式切换、恢复自动联网和必要重启的精确白名单内 |
+| USB 重新枚举后重新读取实际状态，避免只凭写命令返回 `OK` 判断完成 | 同时核对实际 USB 网络协议和配置；绿色还要求模块对应网卡取得有效地址，避免把 Wi-Fi 状态当成网卡成功 |
+| Mac 原生应用管理模块的使用方式 | 聚焦托盘 / 菜单栏小面板；Windows 使用 WPF，Mac 使用 SwiftUI，增加系统开关、键盘操作、无障碍状态和 App Intents |
+
+围绕本项目的携带和切换场景，还做了以下改进：
+
+- **减少无效等待**：先观察 USB 协议变化，再重新打开控制接口，避免在设备消失过程中反复读取；具体耗时见上文，尚未与 DJOneHub 做同条件性能对比。
+- **统一界面与系统动作的状态**：拒绝并发写入，防止迟到查询覆盖新模式；切换中或失败时不暴露旧的成功结果。
+- **四架构自动发布**：GitHub Actions 分别构建 Windows x64 / ARM64 和 Mac Apple Silicon / Intel，检查协议、状态、架构及 Mac App Intents 元数据。
+
+两者的“模式”含义也有区别：DJOneHub 的 iPhone / iPad 模式会调整 USB 音频组合；本项目的开关调整 Windows 与 Mac / iPad 使用的 USB 网络协议。请先退出 DJOneHub，再用本工具切换，避免同时占用或修改模块。
+
+本工具没有覆盖 DJOneHub 的短信、通话、GPS、eSIM、模块侧网络唤醒和完整 DHCP 修复功能；当前也仅支持上述已知 USB 标识与接口布局。Mac 实体设备和无障碍验收范围见 [验证说明](docs/validation.md)，不能据此宣称本工具整体优于或替代 DJOneHub。
+
+上述参考按上游提交 [`5b15eae`](https://github.com/rogerbush007-a11y/DJOneHub-mac-enhanced/tree/5b15eaec0e97dd9fa7b2abe54d0d1289c1e93054) 核对：
+[USB/AT 实现](https://github.com/rogerbush007-a11y/DJOneHub-mac-enhanced/blob/5b15eaec0e97dd9fa7b2abe54d0d1289c1e93054/cmd/djonehub-macos/usbat_darwin.go)、
+[USB 网络模式命令](https://github.com/rogerbush007-a11y/DJOneHub-mac-enhanced/blob/5b15eaec0e97dd9fa7b2abe54d0d1289c1e93054/internal/modem/commands.go)、
+[项目说明](https://github.com/rogerbush007-a11y/DJOneHub-mac-enhanced/blob/5b15eaec0e97dd9fa7b2abe54d0d1289c1e93054/README.md)。许可与源码复用范围见 [第三方说明](third_party/NOTICES.md#djonehub-reference-and-acknowledgement)。
+
 ## 源码
 
 ```text
