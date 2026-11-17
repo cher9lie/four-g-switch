@@ -108,7 +108,11 @@ struct WidgetView: View {
                 .accessibilityIdentifier("four-g-mode-toggle")
                 .keyboardShortcut("m", modifiers: [.command, .shift])
             VStack(alignment: .leading, spacing: 5) {
-                Label(model.presentation.title, systemImage: statusSymbol).fontWeight(.medium)
+                Label {
+                    Text(model.presentation.title)
+                } icon: {
+                    Image(systemName: statusSymbol).foregroundStyle(model.connected ? Color.green : Color.primary)
+                }.fontWeight(.medium)
                 Text(model.presentation.detail).font(.system(size: detailSize))
                     .foregroundStyle(contrast == .increased ? Color.primary : Color.secondary)
                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
