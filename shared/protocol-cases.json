@@ -1,0 +1,11 @@
+[
+  {"name":"windows-mode","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",0\r\n\r\nOK\r\n","expected":0},
+  {"name":"apple-mode-with-echo","key":"usbnet","response":"AT+QCFG=\"usbnet\"\r\r\n+QCFG: \"usbnet\",1\r\nOK\r\n","expected":1},
+  {"name":"auto-connect","key":"qcautoconnect","response":"\r\n+QCFG: \"qcautoconnect\",1\r\nOK\r\n","expected":1},
+  {"name":"unsupported-mode","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",3\r\nOK\r\n","expected":null},
+  {"name":"error","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",1\r\nERROR\r\n","expected":null},
+  {"name":"missing-ack","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",1\r\n","expected":null},
+  {"name":"wrong-key","key":"usbnet","response":"\r\n+QCFG: \"qcautoconnect\",1\r\nOK\r\n","expected":null},
+  {"name":"not-ok","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",1\r\nNOTOK\r\n","expected":null},
+  {"name":"cme-error","key":"usbnet","response":"\r\n+QCFG: \"usbnet\",1\r\n+CME ERROR: 10\r\nOK\r\n","expected":null}
+]

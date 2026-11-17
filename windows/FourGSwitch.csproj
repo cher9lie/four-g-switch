@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <AssemblyName>FourGSwitch</AssemblyName>
+    <RootNamespace>FourGSwitch</RootNamespace>
+    <StartupObject>FourGSwitch.Entry</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Version>3.0.0-beta.1</Version>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+    <Deterministic>true</Deterministic>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Device.cs"/>
+    <Compile Include="Widget.cs"/>
+    <Compile Include="ProtocolFixtures.cs"/>
+    <EmbeddedResource Include="Widget.xaml" LogicalName="Widget.xaml"/>
+    <EmbeddedResource Include="../shared/protocol-cases.json" LogicalName="protocol-cases.json"/>
+    <PackageReference Include="System.IO.Ports" Version="10.0.0"/>
+  </ItemGroup>
+</Project>

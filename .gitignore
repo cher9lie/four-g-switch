@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+bin/
+obj/
+dist/
+build/
+.tools/
+*.log
+*.p12
+*.p8
+*.mobileprovision
+*.error.txt
+.DS_Store
+scripts/prepare-windows.ps1
