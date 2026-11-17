@@ -16,14 +16,15 @@ import ModemCore
         if connected { return "本机使用" }
         if state?.preparedForWindows == true { return "Windows 模式" }
         if state?.mode == .apple { return "等待网络" }
-        return error == nil ? "正在识别" : "未连接网卡"
+        if let error { return error.hasPrefix("请连接") ? "未连接网卡" : "状态待确认" }
+        return "正在识别"
     }
     var subtitle: String {
         if isWorking { return "请勿拔出网卡" }
         if connected { return "Mac 已连接" }
         if state?.preparedForWindows == true { return "可以拔下网卡" }
         if state?.mode == .apple { return "Mac / iPad 模式已开启" }
-        return "插入后自动识别"
+        return error != nil && error?.hasPrefix("请连接") != true ? "刷新后重试" : "插入后自动识别"
     }
     init(demo: Bool = false) {
         if demo {

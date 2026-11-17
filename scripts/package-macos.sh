@@ -45,10 +45,13 @@ cp "$ROOT/third_party/NOTICES.md" "$APP/Contents/Resources/ThirdParty/NOTICES.md
 cp "$ROOT/LICENSE" "$APP/Contents/Resources/LICENSE.txt"
 cp "$ROOT/README.md" "$STAGE/README.md"
 IDENTITY="${MACOS_SIGNING_IDENTITY:--}"
-SIGN_OPTIONS=()
-if [[ "$IDENTITY" != "-" ]]; then SIGN_OPTIONS+=(--options runtime --timestamp); fi
-codesign --force --sign "$IDENTITY" "${SIGN_OPTIONS[@]}" "$APP/Contents/Frameworks/libusb-1.0.0.dylib"
-codesign --force --sign "$IDENTITY" "${SIGN_OPTIONS[@]}" "$APP"
+if [[ "$IDENTITY" == "-" ]]; then
+  codesign --force --sign - "$APP/Contents/Frameworks/libusb-1.0.0.dylib"
+  codesign --force --sign - "$APP"
+else
+  codesign --force --sign "$IDENTITY" --options runtime --timestamp "$APP/Contents/Frameworks/libusb-1.0.0.dylib"
+  codesign --force --sign "$IDENTITY" --options runtime --timestamp "$APP"
+fi
 codesign --verify --strict --deep --verbose=2 "$APP"
 [[ "$(lipo -archs "$APP/Contents/MacOS/FourGSwitch")" == "$EXPECTED_ARCH" ]]
 [[ "$(lipo -archs "$APP/Contents/Frameworks/libusb-1.0.0.dylib")" == "$EXPECTED_ARCH" ]]
