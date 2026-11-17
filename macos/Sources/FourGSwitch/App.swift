@@ -71,7 +71,6 @@ struct WidgetView: View {
     @ObservedObject var model: AppModel
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.colorSchemeContrast) private var contrast
     @ScaledMetric(relativeTo: .body) private var bodySize = 14.0
     @ScaledMetric(relativeTo: .caption) private var detailSize = 12.0

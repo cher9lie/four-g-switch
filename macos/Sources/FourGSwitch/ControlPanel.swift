@@ -28,9 +28,11 @@ enum AccessibilityPreview {
     @MainActor static func render(to path: String) throws {
         _ = NSApplication.shared
         let model = AppModel(demo: true)
-        let hosting = NSHostingView(rootView: WidgetView(model: model).frame(width: 336))
+        let hosting = NSHostingView(rootView: WidgetView(model: model).frame(width: 336)
+            .environment(\.controlActiveState, .active))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 336, height: 300),
                               styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
         window.contentView = hosting
         hosting.layoutSubtreeIfNeeded()
         let fitting = hosting.fittingSize

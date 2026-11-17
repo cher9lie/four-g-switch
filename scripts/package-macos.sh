@@ -45,6 +45,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 PLIST
 /usr/libexec/PlistBuddy -c "Add :FGReleaseVersion string $VERSION" "$APP/Contents/Info.plist"
 bash "$ROOT/scripts/extract-app-intents.sh" "$APP" "$EXPECTED_ARCH"
+cp "$ROOT/build/app-intents-$EXPECTED_ARCH/validation.json" "$ROOT/dist/$NAME-app-intents.json"
 cp "$ROOT/build/libusb/libusb-1.0.29.tar.bz2" "$APP/Contents/Resources/ThirdParty/"
 cp "$ROOT/build/libusb/libusb-1.0.29/COPYING" "$APP/Contents/Resources/ThirdParty/libusb-COPYING.txt"
 cp "$ROOT/third_party/NOTICES.md" "$APP/Contents/Resources/ThirdParty/NOTICES.md"

@@ -18,7 +18,40 @@ private actor SimulatedDevice: DeviceOperating {
     }
 }
 
+private actor SuspendedReadDevice: DeviceOperating {
+    private var pending: CheckedContinuation<Snapshot, Never>?
+    private var value = Snapshot(mode: .apple, autoConnect: true, protocolApplied: true, networkReady: true)
+    func hasPendingRead() -> Bool { pending != nil }
+    func snapshot() async throws -> Snapshot {
+        await withCheckedContinuation { pending = $0 }
+    }
+    func releaseStaleRead() {
+        pending?.resume(returning: Snapshot(mode: .apple, autoConnect: true, protocolApplied: true, networkReady: true))
+        pending = nil
+    }
+    func switchMode(to target: USBMode, progress: @escaping @Sendable (String) -> Void) async throws -> Snapshot {
+        value = Snapshot(mode: target, autoConnect: true, protocolApplied: true, networkReady: false)
+        return value
+    }
+}
+
 final class CoordinatorTests: XCTestCase {
+    func testReadStartedBeforeWriteCannotOverwriteCompletedMode() async throws {
+        let device = SuspendedReadDevice(); let coordinator = DeviceCoordinator(controller: device)
+        let oldRead = Task { await coordinator.refresh() }
+        for _ in 0..<100 {
+            if await device.hasPendingRead() { break }
+            try await Task.sleep(nanoseconds: 1_000_000)
+        }
+        let hasPendingRead = await device.hasPendingRead()
+        XCTAssertTrue(hasPendingRead)
+        let changed = try await coordinator.setMode(.windows)
+        XCTAssertTrue(changed.preparedForWindows)
+        await device.releaseStaleRead()
+        let result = await oldRead.value
+        XCTAssertTrue(result.preparedForWindows)
+        XCTAssertFalse(result.connected)
+    }
     func testConcurrentSystemActionCannotStartASecondUSBWrite() async throws {
         let device = SimulatedDevice(); let coordinator = DeviceCoordinator(controller: device)
         _ = await coordinator.refresh()

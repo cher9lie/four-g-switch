@@ -16,7 +16,7 @@
 
 ## Mac
 
-需要 Xcode Command Line Tools（Swift 5.9+）、macOS 13+、Python 3 和系统自带的 make / curl。
+需要完整 Xcode（当前 CI 使用 Xcode 16.4，包含 App Intents 元数据工具）、macOS 13+、Python 3 和系统自带的 make / curl。仅安装 Command Line Tools 不足以完成 App Intents 打包。
 
 ```bash
 bash scripts/build-libusb.sh
@@ -28,7 +28,11 @@ bash scripts/package-macos.sh x86_64
 
 `build-libusb.sh` 下载固定 1.0.29 版源代码，核对 GitHub 官方 release 提供的 SHA-256，然后本地编译。Mac 应用动态链接该库，打包时修改加载路径为应用内的 Frameworks 目录。
 
-Swift 测试读取 `shared/protocol-cases.json`，并检查命令白名单和未确认状态不能变绿。打包脚本核对 Mach-O 架构，验证代码签名，并运行 `--version` 检查实际动态库加载。不会切换实体模块。
+Swift 测试读取 `shared/protocol-cases.json`，检查命令白名单、未确认状态不能变绿、并发写入拒绝及过期查询不会覆盖新状态。打包脚本核对 Mach-O 架构，验证代码签名，并运行 `--version` 检查实际动态库加载。不会切换实体模块。
+
+SwiftPM 不会自动完成 Xcode 应用工程的 App Intents 打包步骤。脚本显式启用 Swift 常量提取，再通过 Apple 的 `appintentsmetadataprocessor` 生成实际包内的 `Contents/Resources/Metadata.appintents`。校验器要求五个动作和状态实体确实出现在元数据中；缺失时构建失败。不要用 `--force-metadata-output` 隐藏提取错误。
+
+CI artifacts 同时保留 `*-app-intents.json` 校验报告、`*-system-integration.txt` 状态接口检查，以及 Apple Silicon 上用实际 NSHostingView 渲染的原生控件预览。Intel 托管虚拟机缺少 Metal，跳过预览；协议、并发、编译、签名、元数据和接口检查仍执行。
 
 ### 签名和公证
 
@@ -47,8 +51,8 @@ bash scripts/package-macos.sh arm64
 ## GitHub Release
 
 ```bash
-git tag v3.0.0-beta.1
-git push origin v3.0.0-beta.1
+git tag v3.0.0-beta.2
+git push origin v3.0.0-beta.2
 ```
 
 四个平台通过后自动发布预发行版。常规 push / PR 只构建，不发布。Actions 的 release job 才拥有 contents:write；测试 job 只有只读权限，不使用用户 API token。
