@@ -8,6 +8,7 @@ import ModemCore
     @Published var error: String?
     @Published var progress = "正在识别"
     private let controller = ModemController()
+    let isDemo: Bool
     private var isReading = false
     private var timer: Timer?
     var connected: Bool { !isWorking && error == nil && state?.macConnected == true }
@@ -27,6 +28,7 @@ import ModemCore
         return error != nil && error?.hasPrefix("请连接") != true ? "刷新后重试" : "插入后自动识别"
     }
     init(demo: Bool = false) {
+        isDemo = demo
         if demo {
             state = Snapshot(mode: .apple, autoConnect: true, protocolApplied: true, networkReady: true)
             return
@@ -67,13 +69,18 @@ struct WidgetView: View {
             HStack {
                 Text("4G 网卡").fontWeight(.semibold)
                 Spacer()
-                Menu {
-                    Button("复制诊断", action: model.copyDiagnostic)
-                    Divider()
-                    Button("退出") { if !model.isWorking { NSApplication.shared.terminate(nil) } }
-                        .disabled(model.isWorking)
-                } label: { Image(systemName: "ellipsis").frame(width: 22, height: 24) }
-                    .menuStyle(.borderlessButton).fixedSize().accessibilityLabel("更多选项")
+                if model.isDemo {
+                    // ImageRenderer cannot draw the AppKit-backed native Menu. Preserve its SF Symbol footprint.
+                    Image(systemName: "ellipsis").frame(width: 22, height: 24).foregroundStyle(.secondary)
+                } else {
+                    Menu {
+                        Button("复制诊断", action: model.copyDiagnostic)
+                        Divider()
+                        Button("退出") { if !model.isWorking { NSApplication.shared.terminate(nil) } }
+                            .disabled(model.isWorking)
+                    } label: { Image(systemName: "ellipsis").frame(width: 22, height: 24) }
+                        .menuStyle(.borderlessButton).fixedSize().accessibilityLabel("更多选项")
+                }
             }
             HStack(spacing: 16) {
                 Button { Task { await model.toggle() } } label: {
@@ -100,7 +107,8 @@ struct WidgetView: View {
                 Text("DJI 4G").font(.system(size: 12)).foregroundStyle(.secondary)
                 Spacer()
                 Button { Task { await model.refresh() } } label: { Image(systemName: "arrow.clockwise") }
-                    .buttonStyle(.borderless).disabled(model.isWorking).accessibilityLabel("刷新状态")
+                    .buttonStyle(.plain).foregroundStyle(.secondary)
+                    .disabled(model.isWorking).accessibilityLabel("刷新状态")
             }
         }
         .font(.system(size: 14))
