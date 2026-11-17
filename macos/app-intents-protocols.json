@@ -1,0 +1,12 @@
+[
+  "AppIntent",
+  "AppEntity",
+  "AppEnum",
+  "AppShortcutsProvider",
+  "AppShortcutProviding",
+  "EntityQuery",
+  "EntityStringQuery",
+  "DynamicOptionsProvider",
+  "AppIntentsPackage",
+  "_IntentValueRepresentable"
+]

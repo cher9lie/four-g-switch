@@ -8,7 +8,10 @@ export LIBUSB_PREFIX="$(cat "$ROOT/build/libusb-prefix.txt")"
 export MACOSX_DEPLOYMENT_TARGET=13.0
 cd "$ROOT/macos"
 swift test --parallel
-swift build -c release --arch "$EXPECTED_ARCH"
+swift build -c release --arch "$EXPECTED_ARCH" \
+  -Xswiftc -emit-const-values \
+  -Xswiftc -Xfrontend -Xswiftc -const-gather-protocols-file \
+  -Xswiftc -Xfrontend -Xswiftc "$ROOT/macos/app-intents-protocols.json"
 BIN_DIR="$(swift build -c release --arch "$EXPECTED_ARCH" --show-bin-path)"
 VERSION="$(tr -d '\r\n' < "$ROOT/VERSION")"
 NAME="FourGSwitch-$VERSION-macos-$EXPECTED_ARCH"
@@ -31,7 +34,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleExecutable</key><string>FourGSwitch</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>3.0.0</string>
-  <key>CFBundleVersion</key><string>3</string>
+  <key>CFBundleVersion</key><string>30002</string>
+  <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
@@ -39,6 +43,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>NSHumanReadableCopyright</key><string>Copyright © 2026 cher9lie. MIT.</string>
 </dict></plist>
 PLIST
+/usr/libexec/PlistBuddy -c "Add :FGReleaseVersion string $VERSION" "$APP/Contents/Info.plist"
+bash "$ROOT/scripts/extract-app-intents.sh" "$APP" "$EXPECTED_ARCH"
 cp "$ROOT/build/libusb/libusb-1.0.29.tar.bz2" "$APP/Contents/Resources/ThirdParty/"
 cp "$ROOT/build/libusb/libusb-1.0.29/COPYING" "$APP/Contents/Resources/ThirdParty/libusb-COPYING.txt"
 cp "$ROOT/third_party/NOTICES.md" "$APP/Contents/Resources/ThirdParty/NOTICES.md"
@@ -56,6 +62,7 @@ codesign --verify --strict --deep --verbose=2 "$APP"
 [[ "$(lipo -archs "$APP/Contents/MacOS/FourGSwitch")" == "$EXPECTED_ARCH" ]]
 [[ "$(lipo -archs "$APP/Contents/Frameworks/libusb-1.0.0.dylib")" == "$EXPECTED_ARCH" ]]
 "$APP/Contents/MacOS/FourGSwitch" --version
+"$APP/Contents/MacOS/FourGSwitch" --verify-system-integration "$ROOT/dist/$NAME-system-integration.txt"
 if [[ "$EXPECTED_ARCH" == "arm64" ]]; then
   "$APP/Contents/MacOS/FourGSwitch" --render-preview "$ROOT/dist/$NAME-preview.png"
 else
