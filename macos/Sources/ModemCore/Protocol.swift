@@ -5,12 +5,14 @@ public enum ModemError: LocalizedError {
     case rejected
     case invalidResponse
     case timeout
+    case busy
     public var errorDescription: String? {
         switch self {
         case .transport(let message): return message
         case .rejected: return "模块拒绝了设置，已停止切换"
         case .invalidResponse: return "模块配置尚未确认，请刷新后检查"
         case .timeout: return "尚未确认切换结果，请保持连接后刷新"
+        case .busy: return "正在切换网卡模式，请等待当前操作完成"
         }
     }
 }
@@ -20,7 +22,7 @@ public enum USBMode: Int, Sendable {
     case apple = 1
 }
 
-public struct Snapshot: Sendable {
+public struct Snapshot: Equatable, Sendable {
     public let mode: USBMode
     public let autoConnect: Bool
     public let protocolApplied: Bool

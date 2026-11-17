@@ -31,7 +31,7 @@ private final class USBSession {
     }
 }
 
-public actor ModemController {
+public actor ModemController: DeviceOperating {
     public init() {}
     public func snapshot() throws -> Snapshot {
         let session = try USBSession.open()
@@ -80,7 +80,7 @@ public actor ModemController {
         }
         throw ModemError.timeout
     }
-    public func switchMode(to target: USBMode, progress: @Sendable (String) -> Void) async throws -> Snapshot {
+    public func switchMode(to target: USBMode, progress: @escaping @Sendable (String) -> Void) async throws -> Snapshot {
         let before = try snapshot()
         if before.mode == target && before.autoConnect && before.protocolApplied && (target == .windows || before.networkReady) { return before }
         progress("正在保存网卡模式")

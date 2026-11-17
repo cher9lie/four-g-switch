@@ -1,4 +1,4 @@
-# 4G 网卡开关 · FourGSwitch
+# 4G 网卡开关 / FourGSwitch
 
 [![Build native apps](https://github.com/cher9lie/four-g-switch/actions/workflows/build.yml/badge.svg)](https://github.com/cher9lie/four-g-switch/actions/workflows/build.yml)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -18,7 +18,7 @@ Windows 使用原生 WPF 托盘面板，Mac 使用原生 SwiftUI 菜单栏面板
 | Mac Apple Silicon，M 系列 | `macos-arm64.dmg` 或 `.zip` | Apple 原生菜单栏面板 |
 | Mac Intel | `macos-x86_64.dmg` 或 `.zip` | Apple 原生菜单栏面板 |
 
-文件名带版本号，例如 `FourGSwitch-3.0.0-beta.1-win-x64.zip`。Windows 版本自带 .NET，不用额外安装运行库。Mac 版本自带 USB 库，不用安装 Homebrew。
+文件名带版本号，例如 `FourGSwitch-3.0.0-beta.2-win-x64.zip`。Windows 版本自带 .NET，不用额外安装运行库。Mac 版本自带 USB 库，不用安装 Homebrew。
 
 系统要求：Windows 11；macOS 13 或更高版本。仅支持第一代 DJI 4G 模块，USB 标识 **`2CA3:4006`**。
 
@@ -38,13 +38,35 @@ Windows 使用原生 WPF 托盘面板，Mac 使用原生 SwiftUI 菜单栏面板
 
 ## Mac
 
-打开 DMG，把 `FourGSwitch.app` 拖入“应用程序”，然后启动。点击菜单栏电源图标打开面板。
+打开 DMG，把 `FourGSwitch.app` 拖入“应用程序”，然后启动。点击菜单栏天线图标打开面板。
 
-- **开启 / 绿色**：在这台 Mac 使用；Mac 与 iPad 都使用 ECM 模式。
+- **开启**：选择 Mac / iPad 的 ECM 模式；只有取得网卡地址后才显示绿色和“Mac 已连接”，等待地址时显示等待状态。
 - **关闭**：准备给 Windows 使用。显示“可以拔下网卡”后再拔出。
 - 将模块从 Mac 交给 iPad，保持开启的 Mac / iPad 模式即可，不需要先关闭。
 
 使用前退出 DJOneHub 或其他可能同时占用模块 AT 接口的工具。程序不会抢占或卸载内核驱动。
+
+面板采用 SwiftUI 系统开关、菜单、字体与材质，使用系统语义颜色。状态同时用文字和图标表达；适配减少透明度、增强对比度、减少动态效果。VoiceOver 可读取操作标签和状态，重要状态变化会播报。更多菜单可打开可调整大小的独立面板，面板较小时支持滚动。
+
+键盘：`⌘⇧M` 切换模式、`⌘R` 刷新、`⌘O` 打开独立面板、`⌘⇧C` 复制诊断。键盘遍历系统控件时，可在 macOS 系统设置中启用“键盘导航”。完整无障碍检查清单见 [验证范围](docs/validation.md)。
+
+### 快捷指令和系统接口
+
+首次启动应用后，可在“快捷指令”中搜索 **FourGSwitch**。应用通过 Apple App Intents 暴露以下动作，并注册四个预设 App Shortcuts：
+
+| 动作 | 返回 / 行为 |
+|---|---|
+| 查询 4G 网卡状态 | 返回状态实体，可读取模式、是否连接、是否正在切换、USB 配置是否确认、是否已准备给 Windows 使用 |
+| 在 Mac 使用 4G 网卡 | 明确设置 Mac / iPad 模式，返回检查后的状态 |
+| 准备给 Windows 使用 4G 网卡 | 明确设置 Windows 模式，返回检查后的状态 |
+| 设置 4G 网卡模式 | 接收目标模式参数，便于自行组合自动化 |
+| 打开 4G 网卡面板 | 打开独立原生控制面板 |
+
+例如：添加“在 Mac 使用 4G 网卡”，读取结果中的“Mac 网络已连接”，再用“如果”决定是否显示通知。动作完成不一定代表已取得网络地址，应以返回字段为准。未连接设备、切换中或读取失败时，不会返回已确认成功的旧状态。
+
+状态查询和模式动作无需弹出面板，修改模式需要本机解锁。模式动作采用明确目标，重复运行不会反向切换。系统动作和界面共用串行设备入口，切换时的第二个写操作会被拒绝。没有暴露通用 AT 命令、HTTP 服务或远程端口。
+
+系统可用这些动作构建快捷指令，并在系统支持的入口发现 App Shortcuts；Siri 的可用性取决于系统版本、语言与配置。本项目没有自定义控制中心控件或 WidgetKit 桌面小组件。实际注册、语音调用与 VoiceOver 操作仍需真实 Mac 验证，CI 元数据检查不能替代这些测试。
 
 公开测试版采用临时签名，尚未通过 Apple Developer ID 公证。若系统拦截，请按 [Apple 的说明](https://support.apple.com/102445) 对这个已确认来源的应用使用“仍要打开”；不要关闭 Gatekeeper。可选的 Developer ID 签名及公证方法见 [构建说明](docs/building.md)。
 

@@ -61,6 +61,8 @@ jobs:
             dist/*.zip
             dist/*.dmg
             dist/*-preview.png
+            dist/*-system-integration.txt
+            dist/*-app-intents.json
           if-no-files-found: error
   release:
     name: Publish release
