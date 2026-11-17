@@ -25,7 +25,11 @@ import ModemCore
         if state?.mode == .apple { return "Mac / iPad 模式已开启" }
         return "插入后自动识别"
     }
-    init() {
+    init(demo: Bool = false) {
+        if demo {
+            state = Snapshot(mode: .apple, autoConnect: true, protocolApplied: true, networkReady: true)
+            return
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         }
@@ -116,6 +120,15 @@ struct FourGSwitchApp: App {
 @main enum Launcher {
     @MainActor static func main() {
         if CommandLine.arguments.contains("--version") { print("FourGSwitch 3.0.0"); return }
+        if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--render-preview" {
+            _ = NSApplication.shared
+            let renderer = ImageRenderer(content: WidgetView(model: AppModel(demo: true)))
+            renderer.scale = 2
+            guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+                  let bitmap = NSBitmapImageRep(data: tiff), let png = bitmap.representation(using: .png, properties: [:]) else { exit(1) }
+            do { try png.write(to: URL(fileURLWithPath: CommandLine.arguments[2])) } catch { exit(1) }
+            return
+        }
         FourGSwitchApp.main()
     }
 }

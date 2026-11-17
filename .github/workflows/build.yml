@@ -60,6 +60,7 @@ jobs:
           path: |
             dist/*.zip
             dist/*.dmg
+            dist/*-preview.png
           if-no-files-found: error
   release:
     name: Publish release

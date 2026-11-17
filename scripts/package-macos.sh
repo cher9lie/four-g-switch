@@ -53,6 +53,7 @@ codesign --verify --strict --deep --verbose=2 "$APP"
 [[ "$(lipo -archs "$APP/Contents/MacOS/FourGSwitch")" == "$EXPECTED_ARCH" ]]
 [[ "$(lipo -archs "$APP/Contents/Frameworks/libusb-1.0.0.dylib")" == "$EXPECTED_ARCH" ]]
 "$APP/Contents/MacOS/FourGSwitch" --version
+"$APP/Contents/MacOS/FourGSwitch" --render-preview "$ROOT/dist/$NAME-preview.png"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ROOT/dist/$NAME.zip"
 if [[ -n "${APPLE_NOTARY_PROFILE:-}" ]]; then
   xcrun notarytool submit "$ROOT/dist/$NAME.zip" --keychain-profile "$APPLE_NOTARY_PROFILE" --wait

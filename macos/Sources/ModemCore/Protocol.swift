@@ -37,22 +37,28 @@ public struct Snapshot: Sendable {
 }
 
 public enum ATProtocol {
-    private static func matches(_ pattern: String, _ text: String) -> Bool {
-        text.range(of: pattern, options: .regularExpression) != nil
+    private static func lines(_ text: String) -> [String] {
+        text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
     }
     public static func acknowledged(_ text: String) -> Bool {
-        matches(#"(?:^|\r?\n)OK\r?(?:\n|$)"#, text)
+        lines(text).contains("OK")
     }
     public static func rejected(_ text: String) -> Bool {
-        matches(#"(?:^|\r?\n)(?:ERROR|\+CM[ES] ERROR[^\r\n]*)\r?(?:\n|$)"#, text)
+        lines(text).contains { $0 == "ERROR" || $0.hasPrefix("+CME ERROR") || $0.hasPrefix("+CMS ERROR") }
     }
     public static func value(_ response: String, key: String) throws -> Int {
         guard acknowledged(response), !rejected(response) else { throw ModemError.invalidResponse }
-        let pattern = #"\+QCFG:\s*""# + NSRegularExpression.escapedPattern(for: key) + #""\s*,\s*(\d+)"#
-        let expression = try NSRegularExpression(pattern: pattern)
-        guard let match = expression.firstMatch(in: response, range: NSRange(response.startIndex..., in: response)),
-              let range = Range(match.range(at: 1), in: response), let value = Int(response[range]),
-              value == 0 || value == 1 else { throw ModemError.invalidResponse }
+        var values: [Int] = []
+        for line in lines(response) where line.hasPrefix("+QCFG:") {
+            let payload = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+            let fields = payload.split(separator: ",", omittingEmptySubsequences: false)
+            guard fields.count == 2,
+                  fields[0].trimmingCharacters(in: .whitespaces) == "\"\(key)\"" else { continue }
+            let text = fields[1].trimmingCharacters(in: .whitespaces)
+            guard text == "0" || text == "1", let value = Int(text) else { throw ModemError.invalidResponse }
+            values.append(value)
+        }
+        guard values.count == 1, let value = values.first else { throw ModemError.invalidResponse }
         return value
     }
 }
